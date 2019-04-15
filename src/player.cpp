@@ -1,50 +1,23 @@
-/*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
-
 #include "player.h"
 #include "map.h"
-#include "connection.h"
-
-Player::Player(bool is_local) :
-	scene::ISceneNode(NULL, NULL, 0),
-	speed(0, 0, 0),
-	touching_ground(false),
-	peer_id(PEER_ID_NEW),
-	timeout_counter(0.0),
-	m_is_local(is_local),
-	m_position(0, 0, 0)
-{
-}
 
 Player::Player(
-	bool is_local,
 	scene::ISceneNode* parent,
 	scene::ISceneManager* mgr,
 	s32 id) :
 	scene::ISceneNode(parent, mgr, id),
 	speed(0, 0, 0),
 	touching_ground(false),
-	peer_id(PEER_ID_NEW),
-	timeout_counter(0.0),
-	m_is_local(is_local),
 	m_position(0, 0, 0)
 {
 	m_box = core::aabbox3d<f32>(-BS, -BS, -BS, BS, BS, BS);
-
-	//m_bill = NULL;
-
-	//if(is_local == false)
-	//{
 	video::IVideoDriver* driver = SceneManager->getVideoDriver();
 	avatar = mgr->getMesh("../data/character.b3d");
 	avatar_node = mgr->addAnimatedMeshSceneNode(avatar,this);
 	if (avatar_node) {
 		avatar_node->setMaterialFlag(video::EMF_LIGHTING, false);
 		avatar_node->setMaterialTexture(0,driver->getTexture("../data/character.png"));
-		//avatar_node->setFrameLoop(168,188);
-		//avatar_node->setAnimationSpeed(32);
-		// this->animateStand();
+		this->animateStand();
 		avatar_node->setScale(v3f(1, 1, 1));
 		avatar_node->setPosition(v3f(0, 0, 0));
 		avatar_node->setRotation(v3f(0, 0, 0));
@@ -58,29 +31,13 @@ Player::~Player()
 		ISceneNode::remove();
 }
 
-// void Player::stand()
-// {
-// 	avatar_node->setFrameLoop(0,80);
-// }
-
-// void Player::sit()
-// {
-// 	avatar_node->setFrameLoop(81,161);
-// }
-
 void Player::move(f32 dtime, Map &map)
 {
-	// this->avatar_node->setFrameLoop(168,188);
 	setRotation(m_rotation);
 	v3f position = getPosition();
 	v3f oldpos = position;
 	v3s16 oldpos_i = Map::floatToInt(oldpos);
-
-	/*std::cout<<"oldpos_i=("<<oldpos_i.X<<","<<oldpos_i.Y<<","
-			<<oldpos_i.Z<<")"<<std::endl;*/
-
 	position += speed * dtime;
-
 	v3s16 pos_i = Map::floatToInt(position);
 
 	// The frame length is limited to the player going 0.1*BS per call
@@ -105,24 +62,13 @@ void Player::move(f32 dtime, Map &map)
 		oldpos.Y + PLAYER_HEIGHT,
 		oldpos.Z + PLAYER_RADIUS
 	);
-
-	//hilightboxes.push_back(playerbox);
-
 	touching_ground = false;
-
-	/*std::cout<<"Checking collisions for ("
-			<<oldpos_i.X<<","<<oldpos_i.Y<<","<<oldpos_i.Z
-			<<") -> ("
-			<<pos_i.X<<","<<pos_i.Y<<","<<pos_i.Z
-			<<"):"<<std::endl;*/
 
 	for (s16 y = oldpos_i.Y - 1; y <= oldpos_i.Y + 2; y++) {
 		for (s16 z = oldpos_i.Z - 1; z <= oldpos_i.Z + 1; z++) {
 			for (s16 x = oldpos_i.X - 1; x <= oldpos_i.X + 1; x++) {
-				//std::cout<<"with ("<<x<<","<<y<<","<<z<<"): ";
 				try {
 					if (map.getNode(x, y, z).d == MATERIAL_AIR) {
-						//std::cout<<"air."<<std::endl;
 						continue;
 					}
 				}
@@ -137,8 +83,6 @@ void Player::move(f32 dtime, Map &map)
 
 				// See if the player is touching ground
 				if (
-					/*(nodebox.MaxEdge.Y+d > playerbox.MinEdge.Y &&
-					nodebox.MaxEdge.Y-d < playerbox.MinEdge.Y)*/
 					fabs(nodebox.MaxEdge.Y - playerbox.MinEdge.Y) < d
 					&& nodebox.MaxEdge.X - d > playerbox.MinEdge.X
 					&& nodebox.MinEdge.X + d < playerbox.MaxEdge.X
@@ -147,7 +91,6 @@ void Player::move(f32 dtime, Map &map)
 					) {
 					touching_ground = true;
 				}
-
 				if (playerbox.intersectsWithBox(nodebox))
 				{
 
@@ -202,7 +145,5 @@ void Player::move(f32 dtime, Map &map)
 	} // for y
 
 	setPosition(position);
-	// avatar_node->setFrameLoop(168,188);
-	// this->avatar_node->setFrameLoop(0,80);
 }
 

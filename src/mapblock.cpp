@@ -1,5 +1,5 @@
-#include "cmapblock.h"
-#include "cmap.h"
+#include "mapblock.h"
+#include "map.h"
 
 bool MapBlock::isValidPositionParent(v3s16 p)
 {
@@ -48,7 +48,7 @@ FastFace * MapBlock::makeFastFace(u8 material, light_t light, v3f p,
 		v3f dir, v3f scale, v3f posRelative_f)
 {
 	FastFace *f = new FastFace;
-
+	
 	// Position is at the center of the cube.
 	v3f pos = p * BS;
 	posRelative_f *= BS;
@@ -60,13 +60,13 @@ FastFace * MapBlock::makeFastFace(u8 material, light_t light, v3f p,
 	vertex_pos[1] = v3f(-BS/2,-BS/2,BS/2);
 	vertex_pos[2] = v3f(-BS/2, BS/2,BS/2);
 	vertex_pos[3] = v3f( BS/2, BS/2,BS/2);
-
+	
 	/*
 		TODO: Rotate it right
 	*/
 	core::CMatrix4<f32> m;
 	m.buildRotateFromTo(v3f(0,0,1), dir);
-
+	
 	for(u16 i=0; i<4; i++){
 		m.rotateVect(vertex_pos[i]);
 		vertex_pos[i].X *= scale.X;
@@ -81,7 +81,7 @@ FastFace * MapBlock::makeFastFace(u8 material, light_t light, v3f p,
 	else if(scale.Z < 0.999 || scale.Z > 1.001) abs_scale = scale.Z;
 
 	v3f zerovector = v3f(0,0,0);
-
+	
 	//u8 li = (1.0+light)/2 * 255.0; //DEBUG
 	u8 li = light * 255.0;
 	//u8 li = light / 128;
@@ -89,7 +89,7 @@ FastFace * MapBlock::makeFastFace(u8 material, light_t light, v3f p,
 
 	//video::SColor c = video::SColor(255,255,255,255);
 	//video::SColor c = video::SColor(255,64,64,64);
-
+	
 	f->vertices[0] = video::S3DVertex(vertex_pos[0], zerovector, c,
 			core::vector2d<f32>(0,1));
 	f->vertices[1] = video::S3DVertex(vertex_pos[1], zerovector, c,
@@ -104,7 +104,7 @@ FastFace * MapBlock::makeFastFace(u8 material, light_t light, v3f p,
 
 	return f;
 }
-
+	
 /*
 	Parameters must consist of air and !air.
 	Order doesn't matter.
@@ -130,7 +130,7 @@ light_t MapBlock::getFaceLight(v3s16 p, v3s16 face_dir)
 		factor = 0.90;
 	else
 		factor = 1.00;
-
+	
 	try{
 		MapNode n = getNodeParent(p);
 		MapNode n2 = getNodeParent(p + face_dir);
@@ -194,16 +194,16 @@ void MapBlock::updateFastFaceRow(v3s16 startpos,
 		the node that is air.
 	*/
 	light_t light = getFaceLight(p, face_dir);
-
+	
 	u16 continuous_materials_count = 0;
-
+	
 	u8 material0 = getNodeMaterial(p);
 	u8 material1 = getNodeMaterial(p + face_dir);
-
+		
 	for(u16 j=0; j<length; j++)
 	{
 		bool next_is_different = true;
-
+		
 		v3s16 p_next;
 		u8 material0_next = 0;
 		u8 material1_next = 0;
@@ -213,7 +213,7 @@ void MapBlock::updateFastFaceRow(v3s16 startpos,
 			material0_next = getNodeMaterial(p_next);
 			material1_next = getNodeMaterial(p_next + face_dir);
 			light_next = getFaceLight(p_next, face_dir);
-
+			
 			if(material0_next == material0
 					&& material1_next == material1
 					&& fabs(light_next - light) / (light+0.01) < max_light_diff)
@@ -223,7 +223,7 @@ void MapBlock::updateFastFaceRow(v3s16 startpos,
 		}
 
 		continuous_materials_count++;
-
+		
 		if(next_is_different)
 		{
 			/*
@@ -269,7 +269,7 @@ void MapBlock::updateFastFaceRow(v3s16 startpos,
 			material1 = material1_next;
 			light = light_next;
 		}
-
+		
 		p = p_next;
 	}
 }
@@ -282,11 +282,11 @@ void MapBlock::updateFastFaces()
 			//<<"::updateFastFaces()"<<std::endl;
 
 	core::list<FastFace*> *fastfaces_new = new core::list<FastFace*>;
-
+	
 	/*
 		These are started and stopped one node overborder to
 		take changes in those blocks in account.
-
+		
 		TODO: This could be optimized by combining it with updateLighting, as
 		      it can record the surfaces that can be seen.
 	*/
@@ -391,12 +391,12 @@ bool MapBlock::propagateSunlight()
 			}
 
 			has_some_sunlight = true;
-
+			
 			// Continue spreading sunlight downwards
 			s16 y = MAP_BLOCKSIZE-1;
 			for(; y >= 0; y--){
 				v3s16 pos(x, y, z);
-
+				
 				MapNode *n = getNodePtr(pos);
 				if(n == NULL)
 					break;

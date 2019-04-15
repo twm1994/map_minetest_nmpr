@@ -46,7 +46,7 @@ Client::Client(scene::ISceneManager* smgr, video::SMaterial *materials):
 	m_con_mutex.Init();
 
 	m_thread.Start();
-
+	
 	{
 		JMutexAutoLock envlock(m_env_mutex);
 		m_env.getMap().StartUpdater();
@@ -89,7 +89,7 @@ void Client::connect(Address address)
 void Client::step(float dtime)
 {
 	ReceiveAll();
-
+	
 	bool connected = false;
 	{
 		JMutexAutoLock lock(m_con_mutex);
@@ -114,7 +114,7 @@ void Client::step(float dtime)
 	*/
 	{
 		JMutexAutoLock lock(m_fetchblock_mutex);
-
+		
 		core::list<v3s16> remove_queue;
 		core::map<v3s16, float>::Iterator i;
 		i = m_fetchblock_history.getIterator();
@@ -174,7 +174,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		return;
 
 	ToClientCommand command = (ToClientCommand)readU16(&data[0]);
-
+	
 	// Execute fast commands straight away
 
 	if(command == TOCLIENT_REMOVENODE)
@@ -268,7 +268,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 				}
 
 				player->timeout_counter = 0.0;
-
+				
 				v3s32 ps = readV3S32(&data[start+2]);
 				v3s32 ss = readV3S32(&data[start+2+12]);
 				v3f position((f32)ps.X/100., (f32)ps.Y/100., (f32)ps.Z/100.);
@@ -284,7 +284,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 	else
 	{
 		JMutexAutoLock lock(m_incoming_queue_mutex);
-
+		
 		IncomingPacket packet(data, datasize);
 		m_incoming_queue.push_back(packet);
 	}
@@ -296,15 +296,15 @@ getdata:
 	IncomingPacket packet = getPacket();
 	u8 *data = packet.m_data;
 	u32 datasize = packet.m_datalen;
-
+	
 	// An empty packet means queue is empty
 	if(data == NULL){
 		return false;
 	}
-
+	
 	if(datasize < 2)
 		goto getdata;
-
+	
 	ToClientCommand command = (ToClientCommand)readU16(&data[0]);
 
 	if(command == TOCLIENT_BLOCKDATA)
@@ -312,19 +312,19 @@ getdata:
 		// Ignore too small packet
 		if(datasize < 8 + MapBlock::serializedLength())
 			goto getdata;
-
+			
 		v3s16 p;
 		p.X = readS16(&data[2]);
 		p.Y = readS16(&data[4]);
 		p.Z = readS16(&data[6]);
-
+		
 		dout_client<<"Client: Thread: BLOCKDATA for ("
 				<<p.X<<","<<p.Y<<","<<p.Z<<")"
 				<<std::endl;
-
+		
 		{ //envlock
 			JMutexAutoLock envlock(m_env_mutex);
-
+			
 			v2s16 p2d(p.X, p.Z);
 			MapSector *sector = m_env.getMap().getSector(p2d);
 
@@ -339,7 +339,7 @@ getdata:
 				sector->insertBlock(block);
 			}
 		} //envlock
-
+		
 	}
 	else
 	{
@@ -355,7 +355,6 @@ void Client::Send(u16 channelnum, SharedBuffer<u8> data, bool reliable)
 	m_con.Send(PEER_ID_SERVER, channelnum, data, reliable);
 }
 
-// ----------TODO: fetch from files not server----------
 void Client::fetchBlock(v3s16 p)
 {
 	JMutexAutoLock conlock(m_con_mutex);
@@ -363,15 +362,15 @@ void Client::fetchBlock(v3s16 p)
 		return;
 
 	JMutexAutoLock lock(m_fetchblock_mutex);
-
+	
 	// If fetch request was recently sent, cancel
 	if(m_fetchblock_history.find(p) != NULL)
 		return;
-
-
+		
+	
 	con::Peer *peer = m_con.GetPeer(PEER_ID_SERVER);
 	con::Channel *channel = &(peer->channels[1]);
-
+	
 	// Don't allow endless amounts of buffered reliable packets
 	if(channel->incoming_reliables.size() >= 100)
 		return;
@@ -392,7 +391,7 @@ void Client::fetchBlock(v3s16 p)
 IncomingPacket Client::getPacket()
 {
 	JMutexAutoLock lock(m_incoming_queue_mutex);
-
+	
 	core::list<IncomingPacket>::Iterator i;
 	// Refer to first one
 	i = m_incoming_queue.begin();
@@ -402,7 +401,7 @@ IncomingPacket Client::getPacket()
 		IncomingPacket packet;
 		return packet;
 	}
-
+	
 	// Pop out first packet and return it
 	IncomingPacket packet = *i;
 	m_incoming_queue.erase(i);
@@ -456,30 +455,30 @@ void Client::addNode(v3s16 nodepos, MapNode n)
 void Client::sendPlayerPos(float dtime)
 {
 	JMutexAutoLock envlock(m_env_mutex);
-
+	
 	Player *myplayer = m_env.getLocalPlayer();
 	if(myplayer == NULL)
 		return;
-
+	
 	u16 our_peer_id;
 	{
 		JMutexAutoLock lock(m_con_mutex);
 		our_peer_id = m_con.GetPeerID();
 	}
-
+	
 	// Set peer id if not set already
 	if(myplayer->peer_id == PEER_ID_NEW)
 		myplayer->peer_id = our_peer_id;
 	// Check that an existing peer_id is the same as the connection's
 	assert(myplayer->peer_id == our_peer_id);
-
+	
 	// Update at reasonable intervals (0.2s)
 	static float counter = 0.0;
 	counter += dtime;
 	if(counter < 0.2)
 		return;
 	counter = 0.0;
-
+	
 	v3f pf = myplayer->getPosition();
 	v3s32 position(pf.X*100, pf.Y*100, pf.Z*100);
 	v3f sf = myplayer->speed;
@@ -524,36 +523,9 @@ core::list<Player*> Client::getPlayers()
 	return m_env.getPlayers();
 }
 
-// core::list<Npc*> Client::getNpcs()
-// {
-// 	JMutexAutoLock envlock(m_env_mutex);
-// 	return m_env.getNpcs();
-// }
-
-void Client::highlightNode(v3s16 p){
-//    JMutexAutoLock envlock(m_env_mutex);
-    MapNode n(Material::MATERIAL_HIGHLIGHT);
-    m_env.getMap().setNode(p, n);
-    MapBlock* block = m_env.getMap().getNodeBlock(p);
-    if(block != NULL){
-        block->setChangedFlag();
-    }
-    else{
-        cout << "block not found!" << endl;
-    }
-    m_env.getMap().updateChangedVisibleArea();
-}
-
-void Client::restoreNode(v3s16 p, MapNode n){
-//    JMutexAutoLock envlock(m_env_mutex);
-    m_env.getMap().setNode(p, n);
-    MapBlock* block = m_env.getMap().getNodeBlock(p);
-    if(block != NULL){
-        block->setChangedFlag();
-    }
-    else{
-        cout << "block not found!" << endl;
-    }
-    m_env.getMap().updateChangedVisibleArea();
+core::list<Npc*> Client::getNpcs()
+{
+	JMutexAutoLock envlock(m_env_mutex);
+	return m_env.getNpcs();
 }
 

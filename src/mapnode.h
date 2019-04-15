@@ -21,7 +21,7 @@
 // and which is transparent to light
 #define MATERIAL_AIR 254
 
-#define USEFUL_MATERIAL_COUNT 5
+#define USEFUL_MATERIAL_COUNT 4
 
 enum Material
 {
@@ -41,7 +41,6 @@ enum Material
 		TODO: Before implementing water, do a server-client framework.
 	*/
 	MATERIAL_WATER,
-	MATERIAL_HIGHLIGHT,
 	MATERIAL_TORCH,
 };
 
@@ -56,7 +55,7 @@ struct MapNode
 	{
 		*this = n;
 	}
-
+	
 	MapNode(u8 data=MATERIAL_AIR, light_t a_light=LIGHT_MIN, u8 a_param=0)
 	//MapNode(u8 data=MATERIAL_AIR, light_t a_light=LIGHT_MAX, u8 a_param=0)
 	{
@@ -77,7 +76,7 @@ struct MapNode
 	{
 		if(d == MATERIAL_TORCH)
 			return 0.9;
-
+		
 		return 0.0;
 	}
 

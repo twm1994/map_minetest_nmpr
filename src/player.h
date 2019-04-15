@@ -1,7 +1,3 @@
-/*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
-
 #ifndef PLAYER_HEADER
 #define PLAYER_HEADER
 
@@ -21,10 +17,7 @@ class Map;
 class Player : public scene::ISceneNode
 {
 public:
-	Player(bool is_local);
-
 	Player(
-		bool is_local,
 		scene::ISceneNode* parent,
 		scene::ISceneManager* mgr,
 		s32 id);
@@ -99,22 +92,12 @@ public:
 		ISceneNode::setRotation(m_rotation);
 	}
 
-	bool isLocal()
-	{
-		return m_is_local;
-	}
-
 	v3f speed;
 	bool touching_ground;
-	u16 peer_id;
-	float timeout_counter;
 
 private:
-	bool m_is_local;
 	v3f m_position;
 	v3f m_rotation;
-	//scene::ISceneNode* m_bill;
-	//scene::IBillboardSceneNode* m_bill;
 	scene::IAnimatedMesh*           avatar;
 	scene::IAnimatedMeshSceneNode*  avatar_node;
 	core::aabbox3d<f32> m_box;

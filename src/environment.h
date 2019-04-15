@@ -13,10 +13,9 @@
 #include <list>
 #include "common_irrlicht.h"
 #include "player.h"
-#include "npc.h"
 #include "map.h"
 #include <ostream>
-
+#define MAPSIZE 256
 class Environment
 {
 public:
@@ -29,21 +28,21 @@ public:
 	*/
 	void step(f32 dtime);
 
+	// -----TODO: initialize a Map of MAPSIZE*2*MAPSIZE*2*MAPSIZE*2 when starting-----
+	void initMap(int size);
+
+	// -----TODO: some data structure to save the map-----
+	void saveMap();
+
 	Map & getMap();
 	/*
 		Environment deallocates players after use.
 	*/
 	void addPlayer(Player *player);
-	void removePlayer(Player *player);
-	Player * getLocalPlayer();
-	Player * getPlayer(u16 peer_id);
-	core::list<Player*> getPlayers();
-	core::list<Npc*> getNpcs();
-	void addNpc(Npc *npc);
+	Player * getPlayer();
 private:
 	Map *m_map;
-	core::list<Player*> m_players;
-	core::list<Npc*> m_npcs;
+    Player * m_player;
 
 	// Debug output goes here
 	std::ostream &m_dout;

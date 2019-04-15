@@ -116,33 +116,30 @@ public:
 
 	void removeNode(v3s16 nodepos);
 	void addNode(v3s16 nodepos, MapNode n);
-
+	
 	void updateCamera(v3f pos, v3f dir);
-
+	
 	MapNode getNode(v3s16 p);
 
 	// Return value is valid until client is destroyed
 	Player * getLocalPlayer();
 	// Return value is valid until step()
 	core::list<Player*> getPlayers();
-	// core::list<Npc*> getNpcs();
-
-  // TODO
-  void highlightNode(v3s16 p);
-  void restoreNode(v3s16 p, MapNode n);
+	core::list<Npc*> getNpcs();
+	
 private:
-
+	
 	void ReceiveAll();
 	void Receive();
 
 	// m_con_mutex must be locked when calling these
 	void sendPlayerPos(float dtime);
-
+	
 	ClientUpdateThread m_thread;
 
 	Environment m_env;
 	JMutex m_env_mutex;
-
+	
 	con::Connection m_con;
 	JMutex m_con_mutex;
 
