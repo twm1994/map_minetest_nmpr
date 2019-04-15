@@ -1,5 +1,12 @@
 #include "environment.h"
 
+Environment::Environment(std::ostream &dout) :
+    m_dout(dout)
+{
+    initMap(MAPSIZE);
+}
+
+
 Environment::Environment(Map *map, std::ostream &dout) :
 	m_dout(dout)
 {
@@ -12,7 +19,9 @@ Environment::~Environment()
 }
 
 void Environment::initMap(int size){
+    m_map=new Map();
     for(int y=-size;y<size;y++){
+
         for(int z=-size;z<size;z++){
 
             for(int x=-size;x<size;x++){

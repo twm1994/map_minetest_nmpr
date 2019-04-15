@@ -20,6 +20,7 @@ class Environment
 {
 public:
 	// Environment will delete the map passed to the constructor
+    Environment(std::ostream &dout);
 	Environment(Map *map, std::ostream &dout);
 	~Environment();
 	/*
