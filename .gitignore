@@ -1,0 +1,53 @@
+## Generic ignorable patterns and files
+.*
+!.cproject
+!.project
+!.gitignore
+*~
+*bak*
+tags
+*.vim
+*.orig
+*.rej
+
+## Files related to minetest development cycle
+/*.patch
+
+## Non-static Minetest directories
+/bin/
+
+## Configuration/log files
+debug.txt
+
+## Build files
+CMakeFiles
+Makefile
+!/Makefile
+cmake_install.cmake
+CMakeCache.txt
+CPackConfig.cmake
+CPackSourceConfig.cmake
+src/android_version.h
+src/android_version_githash.h
+src/cmake_config.h
+src/cmake_config_githash.h
+src/lua/build/
+locale/
+.directory
+.kdev4/
+*.cbp
+*.kdev4
+*.layout
+*.o
+*.a
+
+## Dependences and documents
+irrlicht-1.8.4/
+jthread-1.3.3/
+*.htm
+
+## Dynamic files
+Backup/
+Debug/
+Release/
+build-output/
