@@ -4,17 +4,11 @@
 
 #ifndef MAP_HEADER
 #define MAP_HEADER
+#include <jmutex.h>
+#include <jthread.h>
+using namespace jthread; // JThread 1.3 support
 #include <iostream>
 #include <malloc.h>
-
-#ifdef _WIN32
-	#include <windows.h>
-	#define sleep_s(x) Sleep((x*1000))
-#else
-	#include <unistd.h>
-	#define sleep_s(x) sleep(x)
-#endif
-
 #include "common_irrlicht.h"
 #include "heightmap.h"
 #include "loadstatus.h"
@@ -24,15 +18,50 @@
 
 class Map;
 
+class MapUpdateThread : public JThread
+{
+    bool run;
+    JMutex run_mutex;
+
+    Map *map;
+
+ public:
+
+    MapUpdateThread(Map *the_map) : JThread(), run(true), map(the_map)
+    {
+        run_mutex.Init();
+    }
+
+    void * Thread();
+
+    bool getRun()
+    {
+        run_mutex.Lock();
+        bool run_cached = run;
+        run_mutex.Unlock();
+        return run_cached;
+    }
+    void setRun(bool a_run)
+    {
+        run_mutex.Lock();
+        run = a_run;
+        run_mutex.Unlock();
+    }
+};
+
 class Map : public NodeContainer, public Heightmappish
 {
 protected:
 
 	core::map<v2s16, MapSector*> m_sectors;
+    JMutex m_getsector_mutex;
+    JMutex m_gensector_mutex;
 
 	v3f camera_position;
 	v3f camera_direction;
+	JMutex camera_mutex;
 
+	MapUpdateThread updater;
 	UnlimitedHeightmap m_heightmap;
 
 	// Be sure to set this to NULL when the cached sector is deleted
@@ -56,9 +85,28 @@ public:
 
 	void updateCamera(v3f pos, v3f dir)
 	{
-		camera_position = pos;
-		camera_direction = dir;
+        camera_mutex.Lock();
+        camera_position = pos;          camera_position = pos;
+        camera_direction = dir;         camera_direction = dir;
+        camera_mutex.Unlock();
 	}
+
+    void StartUpdater()
+    {
+        updater.Start();
+    }
+
+    void StopUpdater()
+    {
+        updater.setRun(false);
+        while(updater.IsRunning())
+            sleep_s(1);
+    }
+
+    bool UpdaterIsRunning()
+    {
+        return updater.IsRunning();
+    }
 
 	/*
 		Returns integer position of the node in given

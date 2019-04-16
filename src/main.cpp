@@ -25,8 +25,6 @@ using namespace jthread;
 #include "player.h"
 #include "main.h"
 #include "environment.h"
-#include "server.h"
-#include "client.h"
 #include <string>
 
 const char *g_material_filenames[MATERIALS_COUNT] = { "../data/stone.png",
@@ -38,6 +36,7 @@ const char *g_material_filenames[MATERIALS_COUNT] = { "../data/stone.png",
 #define VIEWING_RANGE_NODES_MIN MAP_BLOCKSIZE
 #define VIEWING_RANGE_NODES_MAX 35
 
+JMutex g_viewing_range_nodes_mutex;
 s16 g_viewing_range_nodes = MAP_BLOCKSIZE;
 
 /*
@@ -143,6 +142,7 @@ void updateViewingRange(f32 frametime) {
         return;
     }
     counter = 5.0; //seconds
+    g_viewing_range_nodes_mutex.Lock();
     bool changed = false;
     if (frametime > 1.0 / FPS_MIN
             || g_viewing_range_nodes > VIEWING_RANGE_NODES_MAX) {
@@ -161,6 +161,7 @@ void updateViewingRange(f32 frametime) {
         std::cout << "g_viewing_range_nodes = " << g_viewing_range_nodes
                 << std::endl;
     }
+    g_viewing_range_nodes_mutex.Lock();
 #endif
 }
 int main() {
@@ -169,6 +170,8 @@ int main() {
      */
 
     srand(time(0));
+    g_viewing_range_nodes_mutex.Init();
+    assert(g_viewing_range_nodes_mutex.IsInitialized());
     MyEventReceiver receiver;
 
     // create device and exit if creation failed
@@ -470,6 +473,8 @@ int main() {
                 // look-at target: unit vector (representing the direction) from the current player position
                 camera->setTarget(camera_position + camera_direction);
 
+                // -----for Map-----
+                env->updateCamera(camera_position, camera_direction);
                 /*
                  Calculate which block the crosshair is pointing to:
                  by drawing a line between the player and the point d*BS units

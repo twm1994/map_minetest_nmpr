@@ -5,12 +5,16 @@
 #ifndef MAIN_HEADER
 #define MAIN_HEADER
 
+#include <jmutex.h>
+using namespace jthread; // JThread 1.3 support
+
 #define PI 3.14159
 
 #define FOV_ANGLE (PI/2.5)
 
 // Change to struct settings or something
 extern s16 g_viewing_range_nodes;
+extern JMutex g_viewing_range_nodes_mutex;
 
 #include <fstream>
 

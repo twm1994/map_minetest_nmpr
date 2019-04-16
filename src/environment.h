@@ -35,6 +35,11 @@ public:
 	// -----TODO: some data structure to save the map-----
 	void saveMap();
 
+	// -----warper for Map::updateCamera(v3f pos, v3f dir)-----
+	void updateCamera(v3f pos, v3f dir){
+	    m_map.updateCamera(pos, dir);
+	}
+
 	Map & getMap();
 	/*
 		Environment deallocates players after use.
