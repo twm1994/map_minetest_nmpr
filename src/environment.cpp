@@ -18,7 +18,7 @@ void Environment::initMap(int size) {
 
 			for (int x = -size; x < size; x++) {
 				v3s16 p = v3s16(x, y, z);
-				m_map->getBlock(p);
+				m_map->getNode(p);
 			} // for(int x=-size;x<size;x++)
 		} // for(int z=-size;z<size;z++)
 	} // for(int y=-size;y<size;y++)

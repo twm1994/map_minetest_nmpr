@@ -333,7 +333,7 @@ int main() {
 			else
 				dtime = 0;
 			lasttime = time;
-
+			updateViewingRange(dtime);
 			// Collected during the loop and displayed
 			core::list<core::aabbox3d<f32> > hilightboxes;
 
