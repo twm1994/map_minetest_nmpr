@@ -12,11 +12,11 @@ Environment::~Environment() {
 
 void Environment::initMap(int size) {
 
-	for (int y = -size; y < size; y++) {
+	for (int y = 0; y < size; y++) {
 
-		for (int z = -size; z < size; z++) {
+		for (int z = 0; z < size; z++) {
 
-			for (int x = -size; x < size; x++) {
+			for (int x = 0; x < size; x++) {
 				v3s16 p = v3s16(x, y, z);
 				m_map->getNode(p);
 			} // for(int x=-size;x<size;x++)
