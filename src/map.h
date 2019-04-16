@@ -26,20 +26,16 @@ class Map;
 
 class Map : public NodeContainer, public Heightmappish
 {
-public:
-	/*
-		TODO: Dynamic block loading
-		Add a filename to the constructor, in which the map will be
-		automatically stored - or something.
-	*/
-
 protected:
 
 	core::map<v2s16, MapSector*> m_sectors;
 
+	v3f camera_position;
+	v3f camera_direction;
+
 	UnlimitedHeightmap m_heightmap;
-	
-	// Be sure to set this to NULL when the cached sector is deleted 
+
+	// Be sure to set this to NULL when the cached sector is deleted
 	MapSector *m_sector_cache;
 	v2s16 m_sector_cache_p;
 
@@ -48,11 +44,21 @@ protected:
 public:
 
 	v3s16 drawoffset;
-
+	/*
+		TODO: Dynamic block loading
+		Add a filename to the constructor, in which the map will be
+		automatically stored - or something.
+	*/
 	//LoadStatus status;
-	
+
 	Map();
 	~Map();
+
+	void updateCamera(v3f pos, v3f dir)
+	{
+		camera_position = pos;
+		camera_direction = dir;
+	}
 
 	/*
 		Returns integer position of the node in given
@@ -92,13 +98,13 @@ public:
 	//bool sectorExists(v2s16 p);
 	MapSector * getSectorNoGenerate(v2s16 p2d);
 	virtual MapSector * getSector(v2s16 p);
-	
+
 	MapBlock * getBlockNoCreate(v3s16 p);
 	virtual MapBlock * getBlock(v3s16 p);
 
 	f32 getGroundHeight(v2s16 p, bool generate=false);
 	void setGroundHeight(v2s16 p, f32 y, bool generate=false);
-	
+
 	bool isValidPosition(v3s16 p)
 	{
 		v3s16 blockpos = getNodeBlockPos(p);
@@ -114,7 +120,7 @@ public:
 				<<"): is_valid="<<is_valid<<" (block reported)";*/
 		return is_valid;
 	}
-	
+
 	/*
 		Returns the position of the block where the node is located
 	*/
@@ -174,8 +180,8 @@ public:
 	{
 		setNode(v3s16(x,y,z), n);
 	}
-	
-	
+
+
 	MapNode getNode(v3f p)
 	{
 		return getNode(floatToInt(p));
@@ -191,7 +197,7 @@ public:
 				for(u16 x=0; x<w; x++)
 					setNode(x0+x, y0+y, z0+z, node);
 	}
-	
+
 	void drawslope(s16 x0, s16 y0, s16 z0, s16 w, s16 h, s16 d, s16 dy_x, s16 dy_z, MapNode node)
 	{
 		x0 += drawoffset.X;
@@ -209,7 +215,7 @@ public:
 	void unLightNeighbors(v3s16 pos, f32 oldlight,
 			core::list<v3s16> & light_sources,
 			core::map<v3s16, MapBlock*> & modified_blocks);
-	
+
 	/*void lightNeighbors(v3s16 pos, f32 oldlight,
 			core::map<v3s16, MapBlock*> & modified_blocks);*/
 	void lightNeighbors(v3s16 pos,
@@ -219,10 +225,10 @@ public:
 
 	s16 propagateSunlight(v3s16 start,
 			core::map<v3s16, MapBlock*> & modified_blocks);
-	
+
 	void updateLighting(core::list< MapBlock*>  & a_blocks,
 			core::map<v3s16, MapBlock*> & modified_blocks);
-			
+
 	void nodeAddedUpdate(v3s16 p, f32 light);
 	void removeNodeAndUpdate(v3s16 p);
 
@@ -232,10 +238,10 @@ public:
 	void generateMaster();*/
 
 	bool updateChangedVisibleArea();
-	
+
 	void renderMap(video::IVideoDriver* driver,
 		video::SMaterial *materials);
-		
+
 };
 
 class MasterMap : public Map
@@ -277,7 +283,7 @@ public:
 		driver->setTransform(video::ETS_WORLD, AbsoluteTransformation);
 		renderMap(driver, m_materials);
 	}
-	
+
 	virtual const core::aabbox3d<f32>& getBoundingBox() const
 	{
 		return m_box;
@@ -291,11 +297,11 @@ public:
 	virtual video::SMaterial& getMaterial(u32 i)
 	{
 		return materials[0];
-	}*/	
-	
+	}*/
+
 private:
 	Client *m_client;
-	
+
 	video::SMaterial *m_materials;
 
 	core::aabbox3d<f32> m_box;
