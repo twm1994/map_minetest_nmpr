@@ -1,30 +1,29 @@
 #include "mapsector.h"
 #include <jmutexautolock.h>
-namespace jthread {} // JThread 1.2 support
-using namespace jthread; // JThread 1.3 support
+namespace jthread {
+} // JThread 1.2 support
+using namespace jthread;
+// JThread 1.3 support
 #include "client.h"
 #include "exceptions.h"
 #include "main.h"
 
-HeightmapBlockGenerator::HeightmapBlockGenerator
-(v2s16 p2d, Heightmap * masterheightmap) :
-	m_heightmap(NULL)
-{
-	m_heightmap = new FixedHeightmap(masterheightmap,
-		p2d, MAP_BLOCKSIZE);
+HeightmapBlockGenerator::HeightmapBlockGenerator(v2s16 p2d,
+		Heightmap * masterheightmap) :
+		m_heightmap(NULL) {
+	m_heightmap = new FixedHeightmap(masterheightmap, p2d, MAP_BLOCKSIZE);
 }
 
 /*HeightmapBlockGenerator::HeightmapBlockGenerator
-		(MapSector *sector, Heightmap * masterheightmap):
-		m_heightmap(NULL)
-{
-	m_heightmap = new FixedHeightmap(masterheightmap,
-			sector->getPos(), MAP_BLOCKSIZE);
-	sector->setHeightmap(m_heightmap);
-}*/
+ (MapSector *sector, Heightmap * masterheightmap):
+ m_heightmap(NULL)
+ {
+ m_heightmap = new FixedHeightmap(masterheightmap,
+ sector->getPos(), MAP_BLOCKSIZE);
+ sector->setHeightmap(m_heightmap);
+ }*/
 
-MapBlock * HeightmapBlockGenerator::makeBlock(MapSector *sector, s16 block_y)
-{
+MapBlock * HeightmapBlockGenerator::makeBlock(MapSector *sector, s16 block_y) {
 	MapBlock *block = sector->createBlankBlockNoInsert(block_y);
 	v2s16 pos = sector->getPos();
 	//dout_map_gen << "-----HeightmapBlockGenerator::makeBlock at (" << pos.X << "," << pos.Y << "), block_y: " << block_y << " -----" << std::endl;
@@ -53,8 +52,7 @@ MapBlock * HeightmapBlockGenerator::makeBlock(MapSector *sector, s16 block_y)
 				if (real_y <= target_y - 10) {
 					if (low_block_is_empty) {
 						n.d = MATERIAL_AIR;
-					}
-					else {
+					} else {
 						n.d = MATERIAL_STONE;
 					}
 				}
@@ -79,14 +77,13 @@ MapBlock * HeightmapBlockGenerator::makeBlock(MapSector *sector, s16 block_y)
 	return block;
 }
 
-MapBlock * ClientBlockGenerator::makeBlock(MapSector *sector, s16 block_y)
-{
+MapBlock * ClientBlockGenerator::makeBlock(MapSector *sector, s16 block_y) {
 	//std::cout<<"ClientBlockGenerator::makeBlock()"<<std::endl;
 	/*
-		TODO:
-		Add the block to the client's fetch queue.
-		As of now, the only other thing we can do is to throw an exception.
-	*/
+	 TODO:
+	 Add the block to the client's fetch queue.
+	 As of now, the only other thing we can do is to throw an exception.
+	 */
 	v3s16 blockpos_map(sector->getPos().X, block_y, sector->getPos().Y);
 
 	//m_client->addToBlockFetchQueue(blockpos_map);
@@ -95,8 +92,7 @@ MapBlock * ClientBlockGenerator::makeBlock(MapSector *sector, s16 block_y)
 	throw AsyncQueuedException("Client will fetch later");
 }
 
-MapBlock * MapSector::getBlockBuffered(s16 y)
-{
+MapBlock * MapSector::getBlockBuffered(s16 y) {
 	MapBlock *block;
 
 	if (m_block_cache != NULL && y == m_block_cache_y) {
@@ -105,12 +101,11 @@ MapBlock * MapSector::getBlockBuffered(s16 y)
 
 	// If block doesn't exist, return NULL
 	core::map<s16, MapBlock*>::Node *n = m_blocks.find(y);
-	if (n == NULL)
-	{
+	if (n == NULL) {
 		/*
-			TODO: Check if block is stored on disk
-				  and load dynamically
-		*/
+		 TODO: Check if block is stored on disk
+		 and load dynamically
+		 */
 		block = NULL;
 	}
 	// If block exists, return it
@@ -125,10 +120,9 @@ MapBlock * MapSector::getBlockBuffered(s16 y)
 	return block;
 }
 
-MapBlock * MapSector::getBlockNoCreate(s16 y)
-{
+MapBlock * MapSector::getBlockNoCreate(s16 y) {
 	/*std::cout<<"MapSector("<<m_pos.X<<","<<m_pos.Y<<")::getBlock("<<y
-			<<")"<<std::endl;*/
+	 <<")"<<std::endl;*/
 
 	JMutexAutoLock lock(m_mutex);
 
@@ -140,8 +134,7 @@ MapBlock * MapSector::getBlockNoCreate(s16 y)
 	return block;
 }
 
-MapBlock * MapSector::createBlankBlockNoInsert(s16 y)
-{
+MapBlock * MapSector::createBlankBlockNoInsert(s16 y) {
 	// There should not be a block at this position
 	if (getBlockBuffered(y) != NULL)
 		throw AlreadyExistsException("Block already exists");
@@ -153,12 +146,11 @@ MapBlock * MapSector::createBlankBlockNoInsert(s16 y)
 	return block;
 }
 
-MapBlock * MapSector::createBlankBlock(s16 y)
-{
+MapBlock * MapSector::createBlankBlock(s16 y) {
 	JMutexAutoLock lock(m_mutex);
 
 	/*std::cout<<"MapSector("<<m_pos.X<<","<<m_pos.Y<<")::createBlankBlock("<<y
-			<<")"<<std::endl;*/
+	 <<")"<<std::endl;*/
 
 	MapBlock *block = createBlankBlockNoInsert(y);
 
@@ -168,12 +160,11 @@ MapBlock * MapSector::createBlankBlock(s16 y)
 }
 
 /*
-	This will generate a new block as needed.
+ This will generate a new block as needed.
 
-	A valid heightmap is assumed to exist already.
-*/
-MapBlock * MapSector::getBlock(s16 block_y)
-{
+ A valid heightmap is assumed to exist already.
+ */
+MapBlock * MapSector::getBlock(s16 block_y) {
 	{
 		JMutexAutoLock lock(m_mutex);
 		MapBlock *block = getBlockBuffered(block_y);
@@ -182,7 +173,7 @@ MapBlock * MapSector::getBlock(s16 block_y)
 	}
 
 	/*std::cout<<"MapSector("<<m_pos.X<<","<<m_pos.Y<<
-			")::getBlock("<<block_y<<")"<<std::endl;*/
+	 ")::getBlock("<<block_y<<")"<<std::endl;*/
 
 	MapBlock *block = m_block_gen->makeBlock(this, block_y);
 
@@ -197,8 +188,7 @@ MapBlock * MapSector::getBlock(s16 block_y)
 	return block;
 }
 
-void MapSector::insertBlock(MapBlock *block)
-{
+void MapSector::insertBlock(MapBlock *block) {
 	s16 block_y = block->getPos().Y;
 
 	{
@@ -221,8 +211,7 @@ void MapSector::insertBlock(MapBlock *block)
 	}
 }
 
-core::list<MapBlock*> MapSector::getBlocks()
-{
+core::list<MapBlock*> MapSector::getBlocks() {
 	JMutexAutoLock lock(m_mutex);
 
 	core::list<MapBlock*> ref_list;
@@ -230,8 +219,7 @@ core::list<MapBlock*> MapSector::getBlocks()
 	core::map<s16, MapBlock*>::Iterator bi;
 
 	bi = m_blocks.getIterator();
-	for (; bi.atEnd() == false; bi++)
-	{
+	for (; bi.atEnd() == false; bi++) {
 		MapBlock *b = bi.getNode()->getValue();
 		ref_list.push_back(b);
 	}
@@ -239,15 +227,13 @@ core::list<MapBlock*> MapSector::getBlocks()
 	return ref_list;
 }
 
-f32 MapSector::getGroundHeight(v2s16 p, bool generate)
-{
+f32 MapSector::getGroundHeight(v2s16 p, bool generate) {
 	if (m_heightmap == NULL)
 		return GROUNDHEIGHT_NOTFOUND_SETVALUE;
 	return m_heightmap->getGroundHeight(p);
 }
 
-void MapSector::setGroundHeight(v2s16 p, f32 y, bool generate)
-{
+void MapSector::setGroundHeight(v2s16 p, f32 y, bool generate) {
 	if (m_heightmap == NULL)
 		return;
 	m_heightmap->setGroundHeight(p, y);

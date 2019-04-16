@@ -1,12 +1,13 @@
 /*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
+ (c) 2010 Perttu Ahola <celeron55@gmail.com>
+ */
 
 #ifndef MAIN_HEADER
 #define MAIN_HEADER
 
 #include <jmutex.h>
-using namespace jthread; // JThread 1.3 support
+using namespace jthread;
+// JThread 1.3 support
 
 #define PI 3.14159
 

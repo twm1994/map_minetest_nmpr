@@ -1,22 +1,17 @@
 #include "player.h"
 #include "map.h"
 
-Player::Player(
-	scene::ISceneNode* parent,
-	scene::ISceneManager* mgr,
-	s32 id) :
-	scene::ISceneNode(parent, mgr, id),
-	speed(0, 0, 0),
-	touching_ground(false),
-	m_position(0, 0, 0)
-{
+Player::Player(scene::ISceneNode* parent, scene::ISceneManager* mgr, s32 id) :
+		scene::ISceneNode(parent, mgr, id), speed(0, 0, 0), touching_ground(
+				false), m_position(0, 0, 0) {
 	m_box = core::aabbox3d<f32>(-BS, -BS, -BS, BS, BS, BS);
 	video::IVideoDriver* driver = SceneManager->getVideoDriver();
 	avatar = mgr->getMesh("../data/character.b3d");
-	avatar_node = mgr->addAnimatedMeshSceneNode(avatar,this);
+	avatar_node = mgr->addAnimatedMeshSceneNode(avatar, this);
 	if (avatar_node) {
 		avatar_node->setMaterialFlag(video::EMF_LIGHTING, false);
-		avatar_node->setMaterialTexture(0,driver->getTexture("../data/character.png"));
+		avatar_node->setMaterialTexture(0,
+				driver->getTexture("../data/character.png"));
 		this->animateStand();
 		avatar_node->setScale(v3f(1, 1, 1));
 		avatar_node->setPosition(v3f(0, 0, 0));
@@ -25,14 +20,12 @@ Player::Player(
 	updateSceneNodePosition();
 }
 
-Player::~Player()
-{
+Player::~Player() {
 	if (SceneManager != NULL)
 		ISceneNode::remove();
 }
 
-void Player::move(f32 dtime, Map &map)
-{
+void Player::move(f32 dtime, Map &map) {
 	setRotation(m_rotation);
 	v3f position = getPosition();
 	v3f oldpos = position;
@@ -41,27 +34,17 @@ void Player::move(f32 dtime, Map &map)
 	v3s16 pos_i = Map::floatToInt(position);
 
 	// The frame length is limited to the player going 0.1*BS per call
-	f32 d = (float)BS * 0.15;
+	f32 d = (float) BS * 0.15;
 
 #define PLAYER_RADIUS (BS*0.3)
 #define PLAYER_HEIGHT (BS*1.7)
 
-	core::aabbox3d<f32> playerbox(
-		position.X - PLAYER_RADIUS,
-		position.Y - 0.0,
-		position.Z - PLAYER_RADIUS,
-		position.X + PLAYER_RADIUS,
-		position.Y + PLAYER_HEIGHT,
-		position.Z + PLAYER_RADIUS
-	);
-	core::aabbox3d<f32> playerbox_old(
-		oldpos.X - PLAYER_RADIUS,
-		oldpos.Y - 0.0,
-		oldpos.Z - PLAYER_RADIUS,
-		oldpos.X + PLAYER_RADIUS,
-		oldpos.Y + PLAYER_HEIGHT,
-		oldpos.Z + PLAYER_RADIUS
-	);
+	core::aabbox3d<f32> playerbox(position.X - PLAYER_RADIUS, position.Y - 0.0,
+			position.Z - PLAYER_RADIUS, position.X + PLAYER_RADIUS,
+			position.Y + PLAYER_HEIGHT, position.Z + PLAYER_RADIUS);
+	core::aabbox3d<f32> playerbox_old(oldpos.X - PLAYER_RADIUS, oldpos.Y - 0.0,
+			oldpos.Z - PLAYER_RADIUS, oldpos.X + PLAYER_RADIUS,
+			oldpos.Y + PLAYER_HEIGHT, oldpos.Z + PLAYER_RADIUS);
 	touching_ground = false;
 
 	for (s16 y = oldpos_i.Y - 1; y <= oldpos_i.Y + 2; y++) {
@@ -71,68 +54,62 @@ void Player::move(f32 dtime, Map &map)
 					if (map.getNode(x, y, z).d == MATERIAL_AIR) {
 						continue;
 					}
-				}
-				catch (InvalidPositionException &e)
-				{
+				} catch (InvalidPositionException &e) {
 					// Doing nothing here will block the player from
 					// walking over map borders
 				}
 
-				core::aabbox3d<f32> nodebox = Map::getNodeBox(
-					v3s16(x, y, z));
+				core::aabbox3d<f32> nodebox = Map::getNodeBox(v3s16(x, y, z));
 
 				// See if the player is touching ground
-				if (
-					fabs(nodebox.MaxEdge.Y - playerbox.MinEdge.Y) < d
-					&& nodebox.MaxEdge.X - d > playerbox.MinEdge.X
-					&& nodebox.MinEdge.X + d < playerbox.MaxEdge.X
-					&& nodebox.MaxEdge.Z - d > playerbox.MinEdge.Z
-					&& nodebox.MinEdge.Z + d < playerbox.MaxEdge.Z
-					) {
+				if (fabs(nodebox.MaxEdge.Y - playerbox.MinEdge.Y) < d
+						&& nodebox.MaxEdge.X - d > playerbox.MinEdge.X
+						&& nodebox.MinEdge.X + d < playerbox.MaxEdge.X
+						&& nodebox.MaxEdge.Z - d > playerbox.MinEdge.Z
+						&& nodebox.MinEdge.Z + d < playerbox.MaxEdge.Z) {
 					touching_ground = true;
 				}
-				if (playerbox.intersectsWithBox(nodebox))
-				{
+				if (playerbox.intersectsWithBox(nodebox)) {
 
-					v3f dirs[3] = {
-						v3f(0,0,1), // back
-						v3f(0,1,0), // top
-						v3f(1,0,0), // right
-					};
-					for (u16 i = 0; i < 3; i++)
-					{
+					v3f dirs[3] = { v3f(0, 0, 1), // back
+					v3f(0, 1, 0), // top
+					v3f(1, 0, 0), // right
+							};
+					for (u16 i = 0; i < 3; i++) {
 						f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[i]);
 						f32 nodemin = nodebox.MinEdge.dotProduct(dirs[i]);
 						f32 playermax = playerbox.MaxEdge.dotProduct(dirs[i]);
 						f32 playermin = playerbox.MinEdge.dotProduct(dirs[i]);
-						f32 playermax_old = playerbox_old.MaxEdge.dotProduct(dirs[i]);
-						f32 playermin_old = playerbox_old.MinEdge.dotProduct(dirs[i]);
+						f32 playermax_old = playerbox_old.MaxEdge.dotProduct(
+								dirs[i]);
+						f32 playermin_old = playerbox_old.MinEdge.dotProduct(
+								dirs[i]);
 
-						bool main_edge_collides =
-							((nodemax > playermin && nodemax <= playermin_old + d
+						bool main_edge_collides = ((nodemax > playermin
+								&& nodemax <= playermin_old + d
 								&& speed.dotProduct(dirs[i]) < 0)
-								||
-								(nodemin < playermax && nodemin >= playermax_old - d
-									&& speed.dotProduct(dirs[i]) > 0));
+								|| (nodemin < playermax
+										&& nodemin >= playermax_old - d
+										&& speed.dotProduct(dirs[i]) > 0));
 
 						bool other_edges_collide = true;
-						for (u16 j = 0; j < 3; j++)
-						{
+						for (u16 j = 0; j < 3; j++) {
 							if (j == i)
 								continue;
 							f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[j]);
 							f32 nodemin = nodebox.MinEdge.dotProduct(dirs[j]);
-							f32 playermax = playerbox.MaxEdge.dotProduct(dirs[j]);
-							f32 playermin = playerbox.MinEdge.dotProduct(dirs[j]);
-							if (!(nodemax - d > playermin && nodemin + d < playermax))
-							{
+							f32 playermax = playerbox.MaxEdge.dotProduct(
+									dirs[j]);
+							f32 playermin = playerbox.MinEdge.dotProduct(
+									dirs[j]);
+							if (!(nodemax - d > playermin
+									&& nodemin + d < playermax)) {
 								other_edges_collide = false;
 								break;
 							}
 						}
 
-						if (main_edge_collides && other_edges_collide)
-						{
+						if (main_edge_collides && other_edges_collide) {
 							speed -= speed.dotProduct(dirs[i]) * dirs[i];
 							position -= position.dotProduct(dirs[i]) * dirs[i];
 							position += oldpos.dotProduct(dirs[i]) * dirs[i];

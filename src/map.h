@@ -9,6 +9,15 @@
 using namespace jthread; // JThread 1.3 support
 #include <iostream>
 #include <malloc.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #define sleep_s(x) Sleep((x*1000))
+#else
+    #include <unistd.h>
+    #define sleep_s(x) sleep(x)
+#endif
+
 #include "common_irrlicht.h"
 #include "heightmap.h"
 #include "loadstatus.h"
