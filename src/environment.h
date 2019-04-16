@@ -15,7 +15,7 @@
 #include "player.h"
 #include "map.h"
 #include <ostream>
-#define MAPSIZE 32
+#define MAPSIZE 8
 class Environment {
 public:
 	// Environment will delete the map passed to the constructor

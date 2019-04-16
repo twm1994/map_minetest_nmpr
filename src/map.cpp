@@ -45,9 +45,9 @@ void * MapUpdateThread::Thread() {
 
 		bool did_something;
 		did_something = map->updateChangedVisibleArea();
-
-		if (did_something == false)
-			sleep_ms(500);
+//
+//		if (did_something == false)
+//			sleep_ms(500);
 	}
 
 	std::cout << "UpdateThread stopped" << std::endl;

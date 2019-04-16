@@ -182,6 +182,11 @@ public:
 		return data[z * MAP_BLOCKSIZE * MAP_BLOCKSIZE + y * MAP_BLOCKSIZE + x];
 	}
 
+	// -----for saving map data-----
+	int getNodeType(s16 idx) {
+		return int(data[idx].d);
+	}
+
 	MapNode getNode(v3s16 p) {
 		return getNode(p.X, p.Y, p.Z);
 	}

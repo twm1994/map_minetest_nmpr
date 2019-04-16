@@ -48,6 +48,7 @@ u16 g_selected_material = 0;
  - use these to disable or enable outputs of parts of the program
  */
 
+
 std::ofstream dfile("debug.txt");
 std::ostream dout(dfile.rdbuf());
 //

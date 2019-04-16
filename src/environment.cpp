@@ -1,5 +1,4 @@
 #include "environment.h"
-
 Environment::Environment(Map *map, std::ostream &dout) :
 		m_dout(dout) {
 	m_map = map;
@@ -12,16 +11,34 @@ Environment::~Environment() {
 
 void Environment::initMap(int size) {
 
-	for (int y = 0; y < size; y++) {
+	for (int z = 0; z < size; z++) {
 
-		for (int z = 0; z < size; z++) {
+		for (int y = 0; y < size; y++) {
 
 			for (int x = 0; x < size; x++) {
 				v3s16 p = v3s16(x, y, z);
-				m_map->getNode(p);
+				m_map->getBlock(p);
 			} // for(int x=-size;x<size;x++)
 		} // for(int z=-size;z<size;z++)
 	} // for(int y=-size;y<size;y++)
+	core::map<v2s16, MapSector*>::Iterator i = m_map->m_sectors.getIterator();
+	for (; i.atEnd() == false; i++) {
+		MapSector *sector = i.getNode()->getValue();
+		m_dout << "Sector:{";
+		core::list<MapBlock*> blocks = sector->getBlocks();
+		for (core::list<MapBlock*>::Iterator j = blocks.begin();
+				j != blocks.end(); j++) {
+			m_dout << "Block:{";
+			MapBlock *block = *j;
+			for (int k = 0; k < size * size * size;
+					k++) {
+				m_dout << block->getNodeType(k) << ",";
+			}
+			m_dout << "},";
+		}
+		m_dout << "},";
+	}
+	m_dout << std::endl;
 }
 
 void Environment::saveMap() {

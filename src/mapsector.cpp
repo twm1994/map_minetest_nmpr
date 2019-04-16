@@ -154,8 +154,8 @@ MapBlock * MapSector::getBlock(s16 block_y) {
 			return block;
 	}
 
-	/*std::cout<<"MapSector("<<m_pos.X<<","<<m_pos.Y<<
-	 ")::getBlock("<<block_y<<")"<<std::endl;*/
+//	dout<<"MapSector("<<m_pos.X<<","<<m_pos.Y<<
+//	 ")::getBlock("<<block_y<<")"<<std::endl;
 
 	MapBlock *block = m_block_gen->makeBlock(this, block_y);
 

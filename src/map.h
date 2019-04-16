@@ -65,7 +65,6 @@ public:
 class Map: public NodeContainer, public Heightmappish, public scene::ISceneNode {
 protected:
 
-	core::map<v2s16, MapSector*> m_sectors;
 	JMutex m_getsector_mutex;
 	JMutex m_gensector_mutex;
 
@@ -83,7 +82,7 @@ protected:
 	WrapperHeightmap m_hwrapper;
 
 public:
-
+	core::map<v2s16, MapSector*> m_sectors;
 	v3s16 drawoffset;
 	/*
 	 TODO: Dynamic block loading
