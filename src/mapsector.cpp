@@ -1,10 +1,7 @@
 #include "mapsector.h"
 #include <jmutexautolock.h>
-namespace jthread {
-} // JThread 1.2 support
 using namespace jthread;
 // JThread 1.3 support
-#include "client.h"
 #include "exceptions.h"
 #include "main.h"
 
@@ -75,21 +72,6 @@ MapBlock * HeightmapBlockGenerator::makeBlock(MapSector *sector, s16 block_y) {
 	block->setProbablyDark(probably_dark);
 
 	return block;
-}
-
-MapBlock * ClientBlockGenerator::makeBlock(MapSector *sector, s16 block_y) {
-	//std::cout<<"ClientBlockGenerator::makeBlock()"<<std::endl;
-	/*
-	 TODO:
-	 Add the block to the client's fetch queue.
-	 As of now, the only other thing we can do is to throw an exception.
-	 */
-	v3s16 blockpos_map(sector->getPos().X, block_y, sector->getPos().Y);
-
-	//m_client->addToBlockFetchQueue(blockpos_map);
-	m_client->fetchBlock(blockpos_map);
-
-	throw AsyncQueuedException("Client will fetch later");
 }
 
 MapBlock * MapSector::getBlockBuffered(s16 y) {

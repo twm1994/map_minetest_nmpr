@@ -15,11 +15,10 @@
 #include "player.h"
 #include "map.h"
 #include <ostream>
-#define MAPSIZE 256
+#define MAPSIZE 32
 class Environment {
 public:
 	// Environment will delete the map passed to the constructor
-	Environment(std::ostream &dout);
 	Environment(Map *map, std::ostream &dout);
 	~Environment();
 	/*

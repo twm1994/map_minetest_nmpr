@@ -49,18 +49,18 @@ u16 g_selected_material = 0;
  */
 
 std::ofstream dfile("debug.txt");
-
-// Connection
-std::ostream dout_con(dfile.rdbuf());
-
-// Server;
-std::ostream dout_server(dfile.rdbuf());
-//std::ostream dout_server(dfile_server.rdbuf());
-
-// Client
-std::ostream dout_client(dfile.rdbuf());
+std::ostream dout(dfile.rdbuf());
+//
+//// Connection
+//std::ostream dout_con(dfile.rdbuf());
+//
+//// Server;
+//std::ostream dout_server(dfile.rdbuf());
+////std::ostream dout_server(dfile_server.rdbuf());
+//
+//// Client
+//std::ostream dout_client(dfile.rdbuf());
 //std::ostream dout_client(dfile_client.rdbuf());
-
 Player *player;
 
 class MyEventReceiver: public IEventReceiver {
@@ -98,12 +98,6 @@ public:
 			}
 		}
 		if (event.EventType == irr::EET_MOUSE_INPUT_EVENT) {
-			if (event.MouseInput.Event == EMIE_LMOUSE_PRESSED_DOWN) {
-				leftclicked = true;
-			}
-			if (event.MouseInput.Event == EMIE_RMOUSE_PRESSED_DOWN) {
-				rightclicked = true;
-			}
 			if (event.MouseInput.Event == EMIE_MOUSE_WHEEL) {
 				wheel = event.MouseInput.Wheel;
 			}
@@ -193,6 +187,16 @@ int main() {
 	video::IVideoDriver* driver = device->getVideoDriver();
 	scene::ISceneManager* smgr = device->getSceneManager();
 	gui::IGUIEnvironment* guienv = device->getGUIEnvironment();
+
+	// -----pause menu-----
+	video::ITexture* image = driver->getTexture("../data/pause.png");
+	u16 imgWidth = 600;
+	u16 imgHeight = 600;
+	gui::IGUIImage* pauseOverlay = guienv->addImage(image,
+			core::position2d<int>(screenW / 2 - imgWidth / 2,
+					screenH / 2 - imgHeight / 2));
+	pauseOverlay->setVisible(false);
+
 	gui::IGUISkin* skin = guienv->getSkin();
 	gui::IGUIFont* font = guienv->getFont("../data/fontlucida.png");
 	if (font)
@@ -200,19 +204,16 @@ int main() {
 	skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255, 255, 255, 255));
 	skin->setColor(gui::EGDC_3D_HIGH_LIGHT, video::SColor(255, 0, 0, 0));
 	skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(255, 0, 0, 0));
+	const wchar_t *text = L"Loading...";
+	core::vector2d<s32> center(screenW / 2, screenH / 2);
+	core::dimension2d<u32> textd = font->getDimension(text);
+	std::cout << "Text w=" << textd.Width << " h=" << textd.Height << std::endl;
+	core::vector2d<s32> textsize(300, textd.Height);
+	core::rect<s32> textrect(center - textsize / 2, center + textsize / 2);
 
-	// -----TODO: environment will load the whole map-----
-	Environment env = new Environment();
-//    const wchar_t *text = L"Loading...";
-//    core::vector2d<s32> center(screenW / 2, screenH / 2);
-//    core::dimension2d<u32> textd = font->getDimension(text);
-//    std::cout << "Text w=" << textd.Width << " h=" << textd.Height << std::endl;
-//    core::vector2d<s32> textsize(300, textd.Height);
-//    core::rect<s32> textrect(center - textsize / 2, center + textsize / 2);
-//
-//    gui::IGUIStaticText *gui_loadingtext = guienv->addStaticText(text, textrect,
-//            false, false);
-//    gui_loadingtext->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_UPPERLEFT);
+	gui::IGUIStaticText *gui_loadingtext = guienv->addStaticText(text, textrect,
+			false, false);
+	gui_loadingtext->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_UPPERLEFT);
 
 	driver->beginScene(true, true, video::SColor(255, 255, 255, 255));
 	guienv->drawAll();
@@ -235,13 +236,18 @@ int main() {
 		}
 		materials[i].setFlag(video::EMF_BILINEAR_FILTER, false);
 	}
+
+	// -----TODO: environment will load the whole map-----
+	Map *map = new Map(materials, smgr->getRootSceneNode(), smgr, 666);
+	Environment *env = new Environment(map, dout);
+
 	// -----TODO: Just local player and a reference player-----
-	player = new Player(null, smgr, 0);
+	player = new Player(smgr->getRootSceneNode(), smgr, 111);
 
 //        Player dummyPlayer= new Player(null,smgr,0);
 //        dummyPlayer.setPosition(v3f(20,200,0));
 
-	env.addPlayer(player);
+	env->addPlayer(player);
 	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, // Camera parent
 			v3f(BS * 100, BS * 2, BS * 100), // Look from
 			v3f(BS * 100 + 1, BS * 2, BS * 100), // Look to
@@ -295,7 +301,6 @@ int main() {
 
 	// Time is in milliseconds
 	u32 lasttime = device->getTimer()->getTime();
-
 	while (device->run()) {
 		// game pause check
 		if (receiver.isPaused) {
@@ -421,7 +426,7 @@ int main() {
 			 Process environment: simulation logical step increment
 			 */
 			// -----TODO: Just environment step time. Create environment somewhere-----
-			env.step(dtime);
+			env->step(dtime);
 			/*
 			 Mouse and camera control
 			 */
@@ -471,7 +476,7 @@ int main() {
 			camera->setTarget(camera_position + camera_direction);
 
 			// -----for Map-----
-			env->updateCamera(camera_position, camera_direction);
+			env->getMap().updateCamera(camera_position, camera_direction);
 			/*
 			 Calculate which block the crosshair is pointing to:
 			 by drawing a line between the player and the point d*BS units
@@ -503,7 +508,8 @@ int main() {
 				for (s16 z = zstart; z <= zend; z++) {
 					for (s16 x = xstart; x <= xend; x++) {
 						try {
-							if (client.getNode(v3s16(x, y, z)).d == MATERIAL_AIR) {
+							if (env->getMap().getNode(v3s16(x, y, z)).d
+									== MATERIAL_AIR) {
 								continue;
 							}
 						} catch (InvalidPositionException &e) {
@@ -635,16 +641,13 @@ int main() {
 			}
 
 		} // if (receiver.isPaused) {} else
-	}
+	} // while (device->run())
+	/*
+	 In the end, delete the Irrlicht device.
+	 */
+	device->drop();
 
-} // client is deleted at this point
-
-/*
- In the end, delete the Irrlicht device.
- */
-device->drop();
-
-return 0;
-}
+	return 0;
+} // main()
 
 //END

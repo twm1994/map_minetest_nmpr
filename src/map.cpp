@@ -6,11 +6,7 @@
 //#include "player.h"
 #include "main.h"
 #include <jmutexautolock.h>
-namespace jthread {
-} // JThread 1.2 support
 using namespace jthread;
-// JThread 1.3 support
-#include "client.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -58,15 +54,12 @@ void * MapUpdateThread::Thread() {
 
 	return NULL;
 }
-
-Map::Map() :
-		camera_position(0, 0, 0), camera_direction(0, 0, 1), updater(this),
-		//m_heightmap(16, 0.0, 0.0, 0.0),
-		// m_heightmap(32, 66.0, 0.6, 0.0),
-		m_heightmap(16, 30.0, 0.6, 0.0),
-		//m_heightmap(16, 0.0, 0.0, 0.0),
-		//m_heightmap(4, 0.0, 0.0, 0.0),
-		m_sector_cache(NULL), m_hwrapper(this), drawoffset(0, 0, 0) {
+Map::Map(video::SMaterial *materials, scene::ISceneNode* parent,
+		scene::ISceneManager* mgr, s32 id) :
+		scene::ISceneNode(parent, mgr, id), m_materials(materials), camera_position(
+				0, 0, 0), camera_direction(0, 0, 1), updater(this), m_heightmap(
+				16, 30.0, 0.6, 0.0), m_sector_cache(NULL), m_hwrapper(this), drawoffset(
+				0, 0, 0) {
 	m_getsector_mutex.Init();
 	m_gensector_mutex.Init();
 	camera_mutex.Init();
@@ -74,8 +67,8 @@ Map::Map() :
 	assert(m_gensector_mutex.IsInitialized());
 	assert(camera_mutex.IsInitialized());
 
-	// Get this so that the player can stay on it at first
-	// getSector(v2s16(0,0));
+// Get this so that the player can stay on it at first
+//	getSector(v2s16(0, 0));
 }
 
 Map::~Map() {
@@ -109,7 +102,7 @@ Map::~Map() {
  }*/
 
 MapSector * Map::getSectorNoGenerate(v2s16 p) {
-	//JMutexAutoLock lock(m_getsector_mutex);
+	JMutexAutoLock lock(m_getsector_mutex);
 
 	if (m_sector_cache != NULL && p == m_sector_cache_p) {
 		MapSector * ref(m_sector_cache);
@@ -117,7 +110,7 @@ MapSector * Map::getSectorNoGenerate(v2s16 p) {
 	}
 
 	core::map<v2s16, MapSector*>::Node *n = m_sectors.find(p);
-	// If sector doesn't exist, throw an exception
+// If sector doesn't exist, throw an exception
 	if (n == NULL) {
 		/*
 		 TODO: Check if sector is stored on disk
@@ -129,20 +122,21 @@ MapSector * Map::getSectorNoGenerate(v2s16 p) {
 
 	MapSector *sector = n->getValue();
 
-	// Cache the last result
+// Cache the last result
 	m_sector_cache_p = p;
 	m_sector_cache = sector;
 
-	//MapSector * ref(sector);
+//MapSector * ref(sector);
 
 	return sector;
 }
 
-MapSector * Map::getSector(v2s16 p2d) {
-	// Stub virtual method
-	assert(0);
-	return getSectorNoGenerate(p2d);
-}
+//// -----use MapSector * MasterMap::getSector(v2s16 p2d)-----
+//MapSector * Map::getSector(v2s16 p2d) {
+//	// Stub virtual method
+//	assert(0);
+//	return getSectorNoGenerate(p2d);
+//}
 
 /*
  If sector doesn't exist, returns NULL
@@ -155,11 +149,11 @@ MapBlock * Map::getBlockNoCreate(v3s16 p3d) {
 	 <<p3d.X<<","<<p3d.Y<<","<<p3d.Z
 	 <<")"<<std::endl;*/
 	v2s16 p2d(p3d.X, p3d.Z);
-	//v2s16 sectorpos = getNodeSectorPos(p2d);
+//v2s16 sectorpos = getNodeSectorPos(p2d);
 	MapSector * sectorref = getSectorNoGenerate(p2d);
 	MapSector *sector = sectorref;
 
-	//JMutexAutoLock(sector->mutex);
+//JMutexAutoLock(sector->mutex);
 
 	MapBlock * blockref = sector->getBlockNoCreate(p3d.Y);
 
@@ -172,7 +166,7 @@ MapBlock * Map::getBlockNoCreate(v3s16 p3d) {
  */
 MapBlock * Map::getBlock(v3s16 p3d) {
 	v2s16 p2d(p3d.X, p3d.Z);
-	//v2s16 sectorpos = getNodeSectorPos(p2d);
+//v2s16 sectorpos = getNodeSectorPos(p2d);
 	MapSector * sref = getSector(p2d);
 
 	/*std::cout<<"Map::GetBlock(): sref->getRefcount()="
@@ -181,7 +175,7 @@ MapBlock * Map::getBlock(v3s16 p3d) {
 
 	MapSector *sector = sref;
 
-	//JMutexAutoLock(sector->mutex);
+//JMutexAutoLock(sector->mutex);
 
 	MapBlock * blockref = sector->getBlock(p3d.Y);
 
@@ -220,9 +214,9 @@ void Map::setGroundHeight(v2s16 p, f32 y, bool generate) {
 	v2s16 sectorpos = getNodeSectorPos(p);
 	MapSector * sref = getSectorNoGenerate(sectorpos);
 	v2s16 relpos = p - sectorpos * MAP_BLOCKSIZE;
-	//sref->mutex.Lock();
+//sref->mutex.Lock();
 	sref->setGroundHeight(relpos, y);
-	//sref->mutex.Unlock();
+//sref->mutex.Unlock();
 }
 
 /*
@@ -263,7 +257,7 @@ void Map::unLightNeighbors(v3s16 pos, f32 oldlight,
 	v3s16(-1, 0, 0), // left
 			};
 
-	// Loop through 6 neighbors
+// Loop through 6 neighbors
 	for (u16 i = 0; i < 6; i++) {
 		// Get the position of the neighbor node
 		v3s16 n2pos = pos + dirs[i];
@@ -357,15 +351,15 @@ void Map::lightNeighbors(v3s16 pos,
 		return;
 	}
 
-	// Calculate relative position in block
+// Calculate relative position in block
 	v3s16 relpos = pos - blockpos_last * MAP_BLOCKSIZE;
-	// Get node straight from the block (fast!)
+// Get node straight from the block (fast!)
 	MapNode *n = block->getNodePtr(relpos);
 
 	f32 oldlight = n->light;
 	f32 newlight = oldlight * LIGHT_DIMINISH_FACTOR;
 
-	// Loop through 6 neighbors
+// Loop through 6 neighbors
 	for (u16 i = 0; i < 6; i++) {
 		// Get the position of the neighbor node
 		v3s16 n2pos = pos + dirs[i];
@@ -441,7 +435,7 @@ v3s16 Map::getBrightestNeighbour(v3s16 p) {
 	f32 brightest_light = -1.0;
 	v3s16 brightest_pos(0, 0, 0);
 
-	// Loop through 6 neighbors
+// Loop through 6 neighbors
 	for (u16 i = 0; i < 6; i++) {
 		// Get the position of the neighbor node
 		v3s16 n2pos = p + dirs[i];
@@ -506,7 +500,7 @@ void Map::updateLighting(core::list<MapBlock*> & a_blocks,
 
 	std::cout << "Flooding direct sunlight" << std::endl;
 
-	// Copy list
+// Copy list
 	core::list<MapBlock *> temp_blocks = a_blocks;
 
 	/*
@@ -547,9 +541,9 @@ void Map::updateLighting(core::list<MapBlock*> & a_blocks,
 		temp_blocks.erase(highest_i);
 	}
 
-	// Add other light sources here
+// Add other light sources here
 
-	//
+//
 
 	std::cout << "Spreading light to remaining air" << std::endl;
 
@@ -605,7 +599,7 @@ void Map::nodeAddedUpdate(v3s16 p, f32 lightwas) {
 
 	core::list<v3s16> light_sources;
 	core::map<v3s16, MapBlock*> modified_blocks;
-	//MapNode n = getNode(p);
+//MapNode n = getNode(p);
 
 	/*
 	 From this node to nodes underneath:
@@ -632,16 +626,16 @@ void Map::nodeAddedUpdate(v3s16 p, f32 lightwas) {
 	} catch (InvalidPositionException &e) {
 	}
 
-	// Add the block of the added node to modified_blocks
+// Add the block of the added node to modified_blocks
 	v3s16 blockpos = getNodeBlockPos(p);
 	MapBlock * blockref = getBlockNoCreate(blockpos);
 	MapBlock *block = blockref;
 	assert(block != NULL);
 	modified_blocks.insert(blockpos, block);
 
-	// Unlight neighbours of node.
-	// This means setting light of all consequent dimmer nodes
-	// to 0.
+// Unlight neighbours of node.
+// This means setting light of all consequent dimmer nodes
+// to 0.
 
 	if (isValidPosition(p) == false)
 		throw;
@@ -731,7 +725,7 @@ void Map::removeNodeAndUpdate(v3s16 p) {
 		lightNeighbors(*j, modified_blocks);
 	}
 
-	// Add the block of the removed node to modified_blocks
+// Add the block of the removed node to modified_blocks
 	v3s16 blockpos = getNodeBlockPos(p);
 	MapBlock * blockref = getBlockNoCreate(blockpos);
 	MapBlock *block = blockref;
@@ -762,7 +756,7 @@ void Map::removeNodeAndUpdate(v3s16 p) {
 		}
 	}
 
-	// Get the brightest neighbour node and propagate light from it
+// Get the brightest neighbour node and propagate light from it
 	v3s16 n2p = getBrightestNeighbour(p);
 	try {
 		MapNode n2 = getNode(n2p);
@@ -778,7 +772,7 @@ void Map::removeNodeAndUpdate(v3s16 p) {
 
 core::aabbox3d<s16> Map::getDisplayedBlockArea() {
 	camera_mutex.Lock();
-	core::aabbox3d<s16> box_nodes(floatToInt(camera_position));
+	core::aabbox3d < s16 > box_nodes(floatToInt(camera_position));
 	camera_mutex.Unlock();
 
 	g_viewing_range_nodes_mutex.Lock();
@@ -787,12 +781,13 @@ core::aabbox3d<s16> Map::getDisplayedBlockArea() {
 	box_nodes.MinEdge -= v3s16(d, d, d);
 	box_nodes.MaxEdge += v3s16(d, d, d);
 
-	return core::aabbox3d<s16>(getNodeBlockPos(box_nodes.MinEdge),
-			getNodeBlockPos(box_nodes.MaxEdge));
+	return core::aabbox3d < s16
+			> (getNodeBlockPos(box_nodes.MinEdge), getNodeBlockPos(
+					box_nodes.MaxEdge));
 }
 
 void Map::renderMap(video::IVideoDriver* driver, video::SMaterial *materials) {
-	//std::cout<<"*********Rendering map..."<<std::endl;
+//std::cout<<"*********Rendering map..."<<std::endl;
 
 	/*
 	 Collect all blocks that are in the view range
@@ -824,7 +819,7 @@ void Map::renderMap(video::IVideoDriver* driver, video::SMaterial *materials) {
 	/*
 	 Get visible blocks
 	 */
-	core::aabbox3d<s16> box_blocks = getDisplayedBlockArea();
+	core::aabbox3d < s16 > box_blocks = getDisplayedBlockArea();
 
 	for (s16 y = box_blocks.MaxEdge.Y; y >= box_blocks.MinEdge.Y; y--) {
 		for (s16 z = box_blocks.MinEdge.Z; z <= box_blocks.MaxEdge.Z; z++) {
@@ -930,20 +925,20 @@ void Map::renderMap(video::IVideoDriver* driver, video::SMaterial *materials) {
 	}
 
 	static s32 oldfacecount = 0;
-	// Cast needed for msvc
+// Cast needed for msvc
 	if (abs((long) (facecount - oldfacecount)) > 333) {
 		std::cout << "Rendered " << facecount << " faces" << std::endl;
 		oldfacecount = facecount;
 	}
 
-	//std::cout<<"done"<<std::endl;
+//std::cout<<"done"<<std::endl;
 }
 
 /*
  Returns true if updated something
  */
 bool Map::updateChangedVisibleArea() {
-	//status.setDone(false);
+//status.setDone(false);
 
 	/*
 	 TODO: Update closest ones first
@@ -952,7 +947,7 @@ bool Map::updateChangedVisibleArea() {
 	 to be displayed.
 	 */
 
-	core::aabbox3d<s16> box_blocks = getDisplayedBlockArea();
+	core::aabbox3d < s16 > box_blocks = getDisplayedBlockArea();
 	core::list<MapBlock *> blocks_changed;
 	core::list<MapBlock *>::Iterator bi;
 
@@ -984,7 +979,7 @@ bool Map::updateChangedVisibleArea() {
 		}
 	}
 
-	// Quit if nothing has changed
+// Quit if nothing has changed
 	if (blocks_changed.empty()) {
 		//status.setReady(true);
 		return false;
@@ -995,7 +990,7 @@ bool Map::updateChangedVisibleArea() {
 	std::cout << "Map::updateChangedVisibleArea(): "
 			"there are changed blocks" << std::endl;
 
-	//status.setReady(false);
+//status.setReady(false);
 
 	core::map<v3s16, MapBlock*> modified_blocks;
 
@@ -1022,22 +1017,23 @@ bool Map::updateChangedVisibleArea() {
 
 	std::cout << std::endl;
 
-	//status.setReady(true);
+//status.setReady(true);
 
 	return true;
 }
 
-MapSector * MasterMap::getSector(v2s16 p2d) {
-	// Check that it doesn't exist already
+//MapSector * MasterMap::getSector(v2s16 p2d) {
+MapSector * Map::getSector(v2s16 p2d) {
+// Check that it doesn't exist already
 	try {
 		MapSector * sref = getSectorNoGenerate(p2d);
 		return sref;
 	} catch (InvalidPositionException &e) {
 	}
 
-	//dout_map_gen << "MasterMap::getSector(" << p2d.X << "," << p2d.Y << "): generating" << std::endl;
+//dout_map_gen << "MasterMap::getSector(" << p2d.X << "," << p2d.Y << "): generating" << std::endl;
 
-	//dout_map_gen << "Generating heightmap..." << std::endl;
+//dout_map_gen << "Generating heightmap..." << std::endl;
 
 	f32 corners[4] = { m_heightmap.getGroundHeight(p2d + v2s16(0, 0)),
 			m_heightmap.getGroundHeight(p2d + v2s16(1, 0)),
@@ -1048,9 +1044,9 @@ MapSector * MasterMap::getSector(v2s16 p2d) {
 	gen = new HeightmapBlockGenerator(p2d, &m_hwrapper);
 	/*DummyHeightmap dummyheightmap;
 	 gen = new HeightmapBlockGenerator(p2d, &dummyheightmap);*/
-	//dout_map_gen << "~~~ HeightmapBlockGenerator::m_heightmap calling generateContinued() ~~~" << std::endl;
+//dout_map_gen << "~~~ HeightmapBlockGenerator::m_heightmap calling generateContinued() ~~~" << std::endl;
 	gen->m_heightmap->generateContinued(2.0, 0.2, corners);
-	//sector->getHeightmap()->generateContinued(0.0, 0.0, corners);
+//sector->getHeightmap()->generateContinued(0.0, 0.0, corners);
 
 	MapSector *sector = new MapSector(this, p2d, gen);
 
@@ -1063,42 +1059,3 @@ MapSector * MasterMap::getSector(v2s16 p2d) {
 
 	return sector;
 }
-
-ClientMap::ClientMap(Client *client, video::SMaterial *materials,
-		scene::ISceneNode* parent, scene::ISceneManager* mgr, s32 id) :
-		scene::ISceneNode(parent, mgr, id), m_client(client), m_materials(
-				materials) {
-	/*m_box = core::aabbox3d<f32>(0,0,0,
-	 map->getW()*BS, map->getH()*BS, map->getD()*BS);*/
-	/*m_box = core::aabbox3d<f32>(0,0,0,
-	 map->getSizeNodes().X * BS,
-	 map->getSizeNodes().Y * BS,
-	 map->getSizeNodes().Z * BS);*/
-	//m_box = core::aabbox3d<f32>(-BS * 1000000, -BS * 1000000, -BS * 1000000,
-	//	BS * 1000000, BS * 1000000, BS * 1000000);
-	m_box = core::aabbox3d<f32>(-BS * 1000, -BS * 1000, -BS * 1000,
-	BS * 1000, BS * 1000, BS * 1000);
-}
-
-MapSector * ClientMap::getSector(v2s16 p2d) {
-	// Check that it doesn't exist already
-	try {
-		MapSector *sector = getSectorNoGenerate(p2d);
-		return sector;
-	} catch (InvalidPositionException &e) {
-	}
-
-	/*
-	 Create a ClientBlockGenerator to fill the MapSector's
-	 blocks from data fetched by the client from the server.
-	 */
-	ClientBlockGenerator *gen;
-	gen = new ClientBlockGenerator(m_client);
-
-	MapSector *sector = new MapSector(this, p2d, gen);
-
-	m_sectors.insert(p2d, sector);
-
-	return sector;
-}
-

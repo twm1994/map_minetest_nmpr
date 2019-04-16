@@ -20,9 +20,10 @@ extern JMutex g_viewing_range_nodes_mutex;
 #include <fstream>
 
 // Debug streams
-extern std::ostream dout_con;
-extern std::ostream dout_client;
-extern std::ostream dout_server;
+extern std::ostream dout;
+//extern std::ostream dout_con;
+//extern std::ostream dout_client;
+//extern std::ostream dout_server;
 //extern std::ostream dout_map_gen;
 #endif
 

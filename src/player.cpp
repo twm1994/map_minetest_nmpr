@@ -5,7 +5,7 @@ Player::Player(scene::ISceneNode* parent, scene::ISceneManager* mgr, s32 id) :
 		scene::ISceneNode(parent, mgr, id), speed(0, 0, 0), touching_ground(
 				false), m_position(0, 0, 0) {
 	m_box = core::aabbox3d<f32>(-BS, -BS, -BS, BS, BS, BS);
-	video::IVideoDriver* driver = SceneManager->getVideoDriver();
+	video::IVideoDriver* driver = mgr->getVideoDriver();
 	avatar = mgr->getMesh("../data/character.b3d");
 	avatar_node = mgr->addAnimatedMeshSceneNode(avatar, this);
 	if (avatar_node) {

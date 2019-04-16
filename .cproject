@@ -49,7 +49,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc}\irrlicht-1.8.4\lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc}\jthread-1.3.3\lib&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.184125900" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs"/>
+								<option id="gnu.cpp.link.option.libs.184125900" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="jthread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="irrlicht"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1484597156" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -111,6 +114,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.1018518872" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="irrlicht"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="jthread"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.613101897" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

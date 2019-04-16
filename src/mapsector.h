@@ -48,24 +48,6 @@ public:
 	FixedHeightmap *m_heightmap;
 };
 
-class Client;
-
-/*
- A block "generator" class that fetches blocks
- using the client from the server
- */
-class ClientBlockGenerator: public BlockGenerator {
-public:
-	ClientBlockGenerator(Client * client) {
-		m_client = client;
-	}
-	~ClientBlockGenerator() {
-	}
-	MapBlock * makeBlock(MapSector *sector, s16 block_y);
-private:
-	Client *m_client;
-};
-
 class MapSector: public NodeContainer, public Heightmappish {
 private:
 
